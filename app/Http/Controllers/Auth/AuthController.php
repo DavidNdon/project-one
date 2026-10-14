@@ -12,33 +12,31 @@ use Illuminate\Support\Facades\Validator;
 class AuthController extends Controller
 {
     //login functioanlity
-    public function login(Request $request)
-    {
-        Validator::make($request->all(), [
-            'email' => 'required|email',
-            'password' => 'required|string|min:6',
-        ])->validate();
+    public function login(Request $request) 
+{
+    // 1. Validate the incoming request
+    $credentials = $request->validate([
+        'email' => ['required', 'email'],
+        'password' => ['required', 'string'],
+    ]);
 
-        $credentials = $request->only('email','password');
+    // Optional "remember" boolean if you have it in your form state
+    $remember = $request->boolean('remember');
 
-        if ($request->has('password')) {
-            if (Auth::attempt($credentials)) {
-                /** @var \App\Models\User $user */
-                $user = Auth::user();
-                $token = $user->createToken('auth_token')->plainTextToken;
+    // 2. Attempt to authenticate using web session guard
+    if (Auth::attempt($credentials, $remember)) {
+        // Prevent session fixation attacks
+        $request->session()->regenerate();
 
-                return response()->json([
-                    'access_token' => $token,
-                    'token_type' => 'Bearer',
-                ]);
-            } else {
-                return response()->json(['message' => 'Invalid credentials'], 401);
-            }
-        } else {
-            return response()->json(['message' => 'Password is required'], 400);
-        }
+        // 3. Redirect to home page or dashboard with success message for your toast
+        return redirect()->intended('/')->with('success', 'Welcome back!');
     }
 
+    // 4. Handle failed login attempt by returning back with validation error
+    return back()->withErrors([
+        'email' => 'The provided credentials do not match our records.',
+    ])->onlyInput('email');
+}
     //register functionality
     public function register(Request $request)
     {
@@ -64,7 +62,7 @@ class AuthController extends Controller
             ]);
 
             // 3. Automatically log the user in for web session cookies
-            Auth::login($user);
+            // Auth::login($user);
 
             // 4. Redirect to home page with a success flash message for your toast
             return redirect('/login')->with('success', 'Account created successfully! Welcome aboard.');

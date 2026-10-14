@@ -1,6 +1,5 @@
 import React from 'react';
 import { Head, useForm, usePage, Link } from '@inertiajs/react';
-import AppLayout from '@/layouts/AppLayout';
 
 export default function Login() {
     // Access flash messages or shared props from Laravel session if available
@@ -18,7 +17,7 @@ export default function Login() {
     };
 
     return (
-        <AppLayout>
+        <>
             <Head title="Log In" />
 
             <div className="py-12 px-4 max-w-md mx-auto">
@@ -116,6 +115,6 @@ export default function Login() {
                     </div>
                 </form>
             </div>
-        </AppLayout>
+        </>
     );
 }
